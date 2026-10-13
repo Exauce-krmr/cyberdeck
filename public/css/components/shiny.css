@@ -1,0 +1,109 @@
+/* ---- Skin shiny : une carte qui se reconnaît d'un coup d'œil, sans aucune étiquette.
+   PERFORMANCE : tout ce qui bouge en continu passe par transform / opacity (animé par la carte graphique, aucun repeint). Avant, c'était des
+   background-position et des mix-blend-mode : le navigateur recalculait la carte entière à chaque image, et 60 cartes d'un coup le faisaient ramer.
+   Deux calques : .shiny-under (le cadre, SOUS le corps de la carte) et .shiny-fx (reflets et étoiles, AU-DESSUS). Masqués tant que le skin n'est pas équipé. */
+.shiny-under, .shiny-fx { display: none; }
+.is-shiny .shiny-under, .is-shiny .shiny-fx { display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.is-shiny .shiny-under { z-index: 0; }
+.is-shiny .shiny-fx { z-index: 8; box-shadow: inset 0 0 0 2px rgb(255 255 255 / .3), inset 0 0 1.4rem rgb(255 211 107 / .22); }
+.shiny-under > i, .shiny-fx > i { position: absolute; pointer-events: none; animation-play-state: var(--shiny-play, running); }
+
+.card-wrap.is-shiny {
+    --frame-bg: #2a2548; /* sous le cadre prismatique : une teinte sombre au cas où le calque ne serait pas encore peint */
+    /* Pas de filter: drop-shadow ici : un filtre sur l'enveloppe est recalculé à chaque image dès qu'un enfant s'anime (c'était le plus gros coût).
+       La lueur est un calque à part (::after), flouté une seule fois, qui ne bouge pas. */
+    filter: none; position: relative; isolation: isolate;
+}
+.card-wrap.is-shiny::after { content: ""; position: absolute; inset: 3% 2%; z-index: -1; border-radius: 1rem; opacity: .55; filter: blur(1.1rem); pointer-events: none;
+    background: linear-gradient(135deg, rgb(var(--pearl-gold-rgb) / .8), rgb(var(--pearl-sky-rgb) / .7)); }
+.card-wrap.is-shiny.is-winner::after { inset: 0; opacity: .85; background: var(--accent); }
+/* Cadre : nacre, pas arc-en-ciel. Un fond immobile aux teintes douces (rose pâle, champagne, menthe, glace, lilas) donne l'irisé d'une perle ;
+   seul un reflet blanc diagonal glisse dessus, lentement (le ::after, via transform). Le RGB saturé qui défile faisait « gadget » : retiré. */
+.shiny-frame { inset: 0; background: linear-gradient(135deg, var(--pearl-rose) 0%, var(--pearl-gold) 25%, var(--pearl-mint) 50%, var(--pearl-sky) 75%, var(--pearl-lilac) 100%); }
+.shiny-frame::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; will-change: transform; transform: translateX(-130%) skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / .95) 50%, transparent); animation: shiny-slide 5s ease-in-out infinite; animation-play-state: var(--shiny-play, running); }
+/* Reflet de couleur : une bande diagonale qui traverse la carte */
+.shiny-foil { top: 0; bottom: 0; left: 0; width: 300%; opacity: .26; will-change: transform;
+    background: linear-gradient(115deg, transparent 36%, rgb(var(--pearl-rose-rgb) / .8) 42%, rgb(var(--pearl-gold-rgb) / .8) 47%, rgb(var(--pearl-mint-rgb) / .8) 52%, rgb(var(--pearl-sky-rgb) / .8) 57%, transparent 63%);
+    animation: shiny-foil 4.2s linear infinite; }
+/* Éclat blanc : traverse la carte puis disparaît un moment (décalage propre à chaque carte via --shiny-delay) */
+.shiny-glint { display: none; top: 0; bottom: 0; left: 0; width: 45%; opacity: .8; will-change: transform; transform: translateX(-130%);
+    background: linear-gradient(105deg, transparent, rgb(255 255 255 / .8) 50%, transparent); animation: shiny-glint 4.8s ease-in-out var(--shiny-delay, 0s) infinite; }
+.shiny-star { z-index: 10; width: 6.5cqw; height: 6.5cqw; background: #fff; opacity: 0;
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: twinkle 2.6s ease-in-out infinite; }
+.shiny-star.s1 { top: 9%; right: 9%; animation-delay: .2s; }
+.shiny-star.s2 { top: 41%; left: 6%; width: 4.6cqw; height: 4.6cqw; animation-delay: 1.1s; animation-duration: 3.1s; }
+.shiny-star.s3 { bottom: 24%; right: 7%; width: 5.4cqw; height: 5.4cqw; animation-delay: 1.9s; animation-duration: 2.3s; }
+
+.is-shiny .card-art img { filter: saturate(1.3) contrast(1.06); }
+.is-shiny .card-name { background: linear-gradient(90deg, #fff 0%, var(--pearl-gold) 25%, var(--pearl-mint) 50%, var(--pearl-rose) 75%, #fff 100%); background-size: 250% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: shiny-text 4.5s linear infinite; animation-play-state: var(--shiny-play, running); }
+.is-shiny .stat { border-left-color: transparent; border-image: linear-gradient(180deg, var(--pearl-rose), var(--pearl-gold), var(--pearl-mint)) 1; }
+.is-shiny .stat-bar { background: linear-gradient(90deg, rgb(var(--pearl-rose-rgb) / .4), rgb(var(--pearl-gold-rgb) / .36) 40%, rgb(var(--pearl-mint-rgb) / .32) 70%, rgb(var(--pearl-sky-rgb) / .08)); }
+
+/* Petit coup d'éclat à la révélation d'une manche (animations.js › shine) : l'éclat accélère */
+.card-wrap.shiny-shine .shiny-glint { display: none; }
+.card-wrap.shiny-shine .shiny-frame::after { animation-duration: 1.4s; }
+.shiny-mote { position: absolute; z-index: 20; width: .9rem; height: .9rem; pointer-events: none; background: var(--c, #fff);
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
+
+@keyframes shiny-slide { 0%, 20% { transform: translateX(-130%) skewX(-20deg); } 80%, 100% { transform: translateX(330%) skewX(-20deg); } }
+@keyframes shiny-foil { from { transform: translateX(0); } to { transform: translateX(-66.7%); } }
+@keyframes shiny-glint { 0%, 55% { transform: translateX(-130%); } 85%, 100% { transform: translateX(330%); } }
+@keyframes shiny-text { to { background-position: -250% 0; } }
+@media (prefers-reduced-motion: reduce) {
+    .pack::after, .pack[data-kind="shiny"]::before, .shiny-under > i, .shiny-under > i::after, .shiny-fx > i, .is-shiny .card-name { animation: none; }
+    .shiny-star { opacity: .8; } .shiny-glint { display: none; }
+}
+
+/* Légendaire shiny : le sommet de la collection. Halo doux qui respire derrière la carte, cadre plus rapide, trois étoiles de plus. */
+.card-wrap.rarity-legendary.is-shiny { position: relative; isolation: isolate; }
+.card-wrap.rarity-legendary.is-shiny::before { content: ""; position: absolute; inset: -2.5% -3.5%; z-index: -1; border-radius: 1.2rem; opacity: .32; filter: blur(.8rem);
+    background: conic-gradient(var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac), var(--pearl-rose)); animation: halo-breathe 5s ease-in-out infinite alternate; animation-play-state: var(--shiny-play, running); }
+.card-wrap.rarity-legendary.is-shiny .shiny-frame::after { animation-duration: 3.6s; }
+.card-wrap.rarity-legendary.is-shiny .shiny-glint { animation-duration: 3.2s; opacity: .95; }
+.shiny-star.s4, .shiny-star.s5, .shiny-star.s6 { display: none; }
+.rarity-legendary .shiny-star.s4 { display: block; top: 24%; left: 12%; width: 5cqw; height: 5cqw; animation-delay: .6s; animation-duration: 2.2s; }
+.rarity-legendary .shiny-star.s5 { display: block; top: 62%; right: 12%; width: 7cqw; height: 7cqw; animation-delay: 1.4s; animation-duration: 2.8s; }
+.rarity-legendary .shiny-star.s6 { display: block; bottom: 10%; left: 24%; width: 4.4cqw; height: 4.4cqw; animation-delay: 2.1s; animation-duration: 2s; }
+@keyframes halo-breathe { from { opacity: .22; } to { opacity: .42; } }
+@media (prefers-reduced-motion: reduce) { .card-wrap.rarity-legendary.is-shiny::before { animation: none; } }
+
+/* Faction en arc-en-ciel sur toutes les shiny */
+.is-shiny .card-faction { color: #0b0c12; background: linear-gradient(90deg, var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac), var(--pearl-rose)); background-size: 300% 100%;
+    animation: stat-prism 5s linear infinite; animation-play-state: var(--shiny-play, running); }
+
+/* Légendaire shiny, capacités : on garde la forme d'origine (liseré à gauche + barre de valeur), mais tout y vit.
+   - le liseré de gauche est une colonne nacrée (mêmes teintes douces que le cadre) qui respire ;
+   - la barre de valeur (au lieu de l'or) est un voile nacré qui respire ;
+   Tout passe par opacity : aucun repeint (voir la note PERFORMANCE plus haut). */
+.rarity-legendary.is-shiny .stat { border-left: 0; border-image: none; padding-left: calc(.8em + 4px); background: linear-gradient(90deg, rgb(var(--pearl-rose-rgb) / .14), rgb(var(--pearl-sky-rgb) / .1)); box-shadow: inset 0 0 0 1px rgb(var(--pearl-gold-rgb) / .55), inset 0 0 .9rem rgb(var(--pearl-lilac-rgb) / .25); }
+.rarity-legendary.is-shiny .stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac)); animation: stat-edge 2.8s ease-in-out infinite alternate; animation-play-state: var(--shiny-play, running); }
+.rarity-legendary.is-shiny .stat-bar { overflow: hidden; background: none; }
+.rarity-legendary.is-shiny .stat-bar::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40rem; will-change: transform;
+    background: linear-gradient(135deg, rgb(var(--pearl-rose-rgb) / .78), rgb(var(--pearl-gold-rgb) / .74) 30%, rgb(var(--pearl-mint-rgb) / .7) 55%, rgb(var(--pearl-sky-rgb) / .7) 80%, rgb(var(--pearl-lilac-rgb) / .62)); width: 100%;
+    animation: stat-bar-pulse 3.2s ease-in-out infinite alternate; animation-play-state: var(--shiny-play, running); }
+.rarity-legendary.is-shiny .stat-value { text-shadow: 0 0 .7rem rgb(var(--pearl-gold-rgb) / .65); }
+.rarity-legendary.is-shiny .stat.is-picked { color: #14161d; background: linear-gradient(100deg, #8f98ab, #ffffff 22%, #d3d9e6 45%, #ffffff 68%, #9aa3b8); box-shadow: 0 0 0 2px #fff, 0 0 1rem rgb(220 230 255 / .85); } /* chrome argenté */
+.rarity-legendary.is-shiny .stat.is-picked::before { display: none; }
+.rarity-legendary.is-shiny .stat.is-picked .stat-value { text-shadow: none; }
+@keyframes stat-edge { from { opacity: .55; } to { opacity: 1; } }
+@keyframes stat-bar-pulse { from { opacity: .55; } to { opacity: 1; } }
+@keyframes stat-prism { to { background-position: -300% 0; } }
+@media (prefers-reduced-motion: reduce) { .is-shiny .card-faction, .rarity-legendary.is-shiny .stat::before, .rarity-legendary.is-shiny .stat-bar::before { animation: none; } }
+
+/* Annonce plein écran d'une légendaire shiny : fond violet, trois traits arc-en-ciel au lieu de la bande dorée, pluie d'étoiles de couleur */
+.legend-screen[data-shiny="true"] { background: radial-gradient(ellipse at center, rgb(160 90 255 / .5), rgb(6 3 20 / .92) 70%); }
+.legend-screen[data-shiny="true"] .legend-streak { background: linear-gradient(100deg, transparent, var(--pearl-rose) 14%, var(--pearl-gold) 32%, var(--pearl-mint) 50%, var(--pearl-sky) 68%, var(--pearl-lilac) 86%, transparent); background-size: 220% 100%; animation: prism-run 1.6s linear infinite; }
+.legend-streak-thin { height: .45rem !important; clip-path: none !important; opacity: .9 !important; }
+.legend-streak-top { top: calc(50% - clamp(4rem, 17vh, 8rem)) !important; }
+.legend-streak-bottom { top: calc(50% + clamp(4rem, 17vh, 8rem)) !important; }
+.legend-screen[data-shiny="true"] .legend-title strong { background: linear-gradient(90deg, #1a0b2e, #3b1360 50%, #1a0b2e); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+@keyframes prism-run { to { background-position: -220% 0; } }
+
+/* Collection : les animations des cartes shiny ne tournent que pour celles qui sont à l'écran (collection.js › watchVisibility, via --shiny-play). */
+
+/* Collection : bouton pour équiper / retirer le skin shiny */
+.shiny-toggle { margin-top: .6rem; width: 100%; min-height: 2.4rem; font: 700 .8rem var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--text); background: var(--panel); border: 2px solid var(--line); cursor: pointer; }
+.shiny-toggle[aria-pressed="true"] { color: #0b0c12; background: linear-gradient(90deg, var(--pearl-gold), var(--pearl-mint)); border-color: transparent; }

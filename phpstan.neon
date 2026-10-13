@@ -1,0 +1,11 @@
+parameters:
+    level: 6
+    paths:
+        - app
+        - public/index.php
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    ignoreErrors:
+        # fonctions fournies par Leaf (vendor/), absent de ce poste d analyse
+        - message: "#^Function app not found\\.$#"
+          identifier: function.notFound

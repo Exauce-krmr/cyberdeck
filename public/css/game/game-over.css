@@ -1,0 +1,20 @@
+/* ---- Partie finie : le verdict de la PARTIE doit se voir de loin, pas comme celui d'une simple manche.
+   Il apparaît après les effets de fin (explosion, extinction…), en grand, plein et lumineux. */
+[data-over] .verdict { padding: .3rem 1.5rem; font-size: clamp(1.25rem, 3vw, 1.9rem); letter-spacing: .14em; text-transform: uppercase; border-width: 4px;
+    animation: verdict-final .7s cubic-bezier(.2, .9, .3, 1.2) 1s both; }
+[data-over="win"] .arena-player .verdict { color: var(--ink); border-color: #fff; background: linear-gradient(120deg, var(--accent), var(--you) 50%, var(--accent)); background-size: 240% 100%;
+    box-shadow: 0 0 1.2rem rgb(var(--you-rgb) / .85), 0 0 3.2rem rgb(138 125 255 / .6);
+    animation: verdict-final .7s cubic-bezier(.2, .9, .3, 1.2) 1s both, verdict-glow 2.6s linear 1.7s infinite; }
+[data-over="lose"] .arena-player .verdict { color: #fff; border-color: var(--danger); background: var(--danger); box-shadow: 0 0 1.4rem rgb(255 40 70 / .6); }
+/* Le camp adverse a droit au même gabarit : sa « Victoire » ne doit pas être un petit liseré à côté de ta « Défaite » */
+[data-over="lose"] .arena-ai .verdict { color: #fff; border-color: #fff; background: linear-gradient(120deg, var(--foe), #d98cff 50%, var(--foe)); background-size: 240% 100%;
+    box-shadow: 0 0 1.2rem rgb(var(--foe-rgb) / .85), 0 0 3.2rem rgb(var(--foe-rgb) / .5);
+    animation: verdict-final .7s cubic-bezier(.2, .9, .3, 1.2) 1s both, verdict-glow 2.6s linear 1.7s infinite; }
+[data-over="win"] .arena-ai .verdict { color: var(--muted); border-color: var(--line); background: rgb(255 255 255 / .04); }
+[data-over="draw"] .verdict { color: var(--text); border-color: #cfd4e6; background: rgb(255 255 255 / .08); }
+[data-over] .banner-title { font-size: clamp(1.8rem, 4.2vw, 2.7rem); text-transform: uppercase; letter-spacing: .06em; }
+[data-over="win"] .banner { box-shadow: 0 0 2.2rem rgb(var(--you-rgb) / .4); }
+[data-over] .arena-side .verdict { top: calc(100% + 1.1rem); } /* même écart que les autres étiquettes, pour que le grand libellé ne colle pas à la carte */
+@keyframes verdict-final { from { opacity: 0; scale: 2.4; } to { opacity: 1; scale: 1; } }
+@keyframes verdict-glow { to { background-position: -240% 0; } }
+@media (prefers-reduced-motion: reduce) { [data-over] .verdict { animation: none; } }

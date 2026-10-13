@@ -1,0 +1,12 @@
+/* Feuille de style du jeu : un manifeste. L'ORDRE COMPTE (la cascade) : chaque fichier vient après ceux dont il surcharge des règles.
+   La mise en page des pages se fait directement dans les vues avec les classes Tailwind ; ici, ce que Tailwind exprime mal. */
+@import url("base/base.css"); /* Socle : palette, interface (bandeau, boutons, champs, listes), jauge de duel */
+@import url("base/cursor.css"); /* Curseur cyberpunk : réticule animé selon ce qui est survolé */
+@import url("game/table.css"); /* Table de jeu et préparation : terrain, main, qui joue, deck, pile adverse, capacités */
+@import url("components/card.css"); /* La carte : cadre, rarités, attributs, dos de carte, traitements par rareté */
+@import url("game/screen.css"); /* Écran : lignes de balayage, abandon, popover, inspection de carte, scrollbars, légendaires en jeu */
+@import url("game/play.css"); /* Partie en cours : ambiance, barre et dock fixes, mouvement, moment clé, égalité, explosion, défaite */
+@import url("components/shiny.css"); /* Skin shiny : cadre nacré, reflets, légendaire shiny, annonce plein écran, collection */
+@import url("game/endings.css"); /* Fin au nombre de manches : défaite aux cartes, extinction de l'ordinateur */
+@import url("pages/lab.css"); /* Labo (page de test réservée) */
+@import url("game/game-over.css"); /* Partie finie : le verdict de la PARTIE */

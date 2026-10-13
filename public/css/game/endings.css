@@ -1,0 +1,33 @@
+/* ---- Fin au nombre de manches (voir limitDefeat / limitWin dans fx/animations.js) */
+.loss-veil { position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgb(255 40 70 / .16) 100%); box-shadow: inset 0 0 5rem rgb(255 30 60 / .22); }
+
+/* Scintillement léger de l'écran (défaite aux cartes) : un voile clair qui vacille à peine, en continu */
+.loss-veil::after { content: ""; position: absolute; inset: 0; background: rgb(255 255 255 / .05); animation: loss-flicker 2.3s steps(1, end) infinite; }
+@keyframes loss-flicker { 0%, 100% { opacity: 0; } 6% { opacity: 1; } 9% { opacity: 0; } 31% { opacity: .5; } 33% { opacity: 0; } 57% { opacity: 1; } 59% { opacity: .2; } 62% { opacity: 0; } 83% { opacity: .7; } 85% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .loss-veil::after { animation: none; opacity: 0; } }
+
+/* L'ordinateur s'éteint : la carte se réduit à une ligne lumineuse puis disparaît, la plaque et le compteur se grisent */
+.arena-ai .card-slot.is-poweroff { animation: power-off 1.5s cubic-bezier(.6, 0, .4, 1) forwards; }
+@keyframes power-off {
+    0%   { filter: none; }
+    12%  { filter: brightness(2.2) contrast(1.4); translate: 3px 0; }
+    22%  { filter: brightness(.6); translate: -4px 0; opacity: .7; }
+    32%  { filter: brightness(1.8); translate: 2px 0; opacity: 1; }
+    55%  { filter: brightness(3) saturate(0); scale: 1 1; opacity: 1; }
+    78%  { filter: brightness(4) saturate(0); scale: 1 .012; opacity: 1; }
+    100% { filter: brightness(1) saturate(0); scale: 0 .012; opacity: 0; visibility: hidden; }
+}
+.foe-tag.is-poweroff { animation: tag-off 1.2s ease-out .5s forwards; }
+@keyframes tag-off { 40% { filter: grayscale(1) brightness(.6); opacity: .45; } to { opacity: 0; visibility: hidden; } }
+.arena.is-poweroff .arena-ai .verdict { visibility: hidden; }
+@media (max-width: 47.99rem) { .arena-ai.is-gone { display: none; } }
+.hud-score.is-poweroff > span { color: var(--muted); opacity: .5; transition: color .8s, opacity .8s; }
+@media (prefers-reduced-motion: reduce) { .arena-ai .card-slot.is-poweroff, .foe-tag.is-poweroff { animation: none; } .loss-veil { opacity: 1 !important; } }
+
+/* Partie finie aux cartes : on n'affiche plus la dernière manche comme un « coup normal » (carte grisée, lueur du gagnant de manche).
+   Seul le vainqueur de la PARTIE brille. */
+[data-final] .card-wrap.is-winner, [data-final] .card-wrap.is-loser .card { filter: none; }
+[data-final="win"] .arena-player .card-wrap, [data-final="lose"] .arena-ai .card-wrap { filter: drop-shadow(0 0 .25rem var(--accent)) drop-shadow(0 0 1.3rem var(--accent)); }
+[data-final="lose"] .arena-player .card-wrap .card { filter: grayscale(.8) brightness(.7); }
+[data-final="win"] .arena-ai .card-wrap .card { filter: grayscale(.8) brightness(.7); }

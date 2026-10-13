@@ -1,0 +1,258 @@
+/* Page Boosters : paquets 3D, cérémonie d'ouverture. Les couleurs de ton (--tone-rgb) pilotent tous les effets de lumière. */
+
+:root {
+    --shape-hex: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    --shape-shield: polygon(10% 0, 90% 0, 100% 30%, 100% 62%, 50% 100%, 0 62%, 0 30%);
+    --shape-spike: polygon(50% 0, 62% 24%, 88% 12%, 76% 38%, 100% 50%, 76% 62%, 88% 88%, 62% 76%, 50% 100%, 38% 76%, 12% 88%, 24% 62%, 0 50%, 24% 38%, 12% 12%, 38% 24%);
+    --shape-spark: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+}
+
+/* ---- Tons : chaque difficulté et chaque rareté a sa lumière */
+[data-tone="easy"]      { --tone-rgb: 61 255 216; }
+[data-tone="normal"]    { --tone-rgb: 180 77 255; }
+[data-tone="hard"]      { --tone-rgb: 255 77 94; }
+[data-tone="common"]    { --tone-rgb: 207 214 230; }
+[data-tone="rare"]      { --tone-rgb: 77 163 255; }
+[data-tone="epic"]      { --tone-rgb: 194 100 255; }
+[data-tone="legendary"] { --tone-rgb: 255 201 77; }
+[data-tone="shiny"]     { --tone-rgb: 214 196 255; } /* nacre lilas : jamais l'or des légendaires */
+
+/* Bourse verrouillée : tant que les 60 cartes ne sont pas obtenues, tout est éteint (pièces grises, cadre en pointillés, cadenas) */
+.shiny-wallet[data-locked="true"] { border-style: dashed; background: rgb(255 255 255 / .02); }
+.shiny-wallet[data-locked="true"] .coin { filter: grayscale(1) brightness(.8); opacity: .85; }
+.shiny-wallet[data-locked="true"] .coin::before { animation: none; }
+.shiny-wallet[data-locked="true"] .btn { filter: grayscale(1); opacity: .35; box-shadow: none; }
+.shiny-wallet[data-locked="true"] .coin.is-empty { filter: none; opacity: .7; } /* emplacements vides : gris clair, bien lisibles même verrouillés */
+.wallet-lock { display: inline-flex; align-items: center; gap: .5rem; color: var(--muted); font-size: .9rem; }
+.wallet-lock svg { width: 1.1rem; height: 1.1rem; flex: none; }
+
+/* ---- Le paquet : objet 3D qui suit le pointeur (variables --rx/--ry/--mx/--my posées par holo.js) */
+.pack-grid { display: grid; gap: 2.4rem 1.8rem; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); padding-block: .5rem; }
+.pack-tile { display: grid; gap: 1rem; justify-items: stretch; perspective: 900px; }
+.pack-tile .pack-stage { animation: pack-bob 4.4s ease-in-out infinite; }
+.pack-tile:nth-child(2n) .pack-stage { animation-delay: -1.4s; }
+.pack-tile:nth-child(3n) .pack-stage { animation-delay: -2.7s; }
+@keyframes pack-bob { 50% { translate: 0 -.55rem; } }
+.pack-stage { position: relative; }
+.pack-stage::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -1rem; height: 1rem; z-index: -1; border-radius: 50%; background: rgb(var(--tone-rgb) / .35); filter: blur(.7rem); }
+
+/* Paquet cyberpunk : verre noir, filets néon d'un pixel, repères d'angle, emblème en contour, titre qui « bave » en cyan et magenta.
+   Rien de plat ni de rayé en gros : tout est fin et net, la lumière vient des bords. */
+.pack {
+    --pack: rgb(var(--tone-rgb)); --pack-dark: color-mix(in srgb, var(--pack) 14%, #05060b); --shape: var(--shape-hex); --edge: 1.1rem;
+    position: relative; display: grid; align-content: end; justify-items: center; gap: .3rem; aspect-ratio: 5 / 7; width: 100%; padding: 1.7rem .8rem 2rem; text-align: center; isolation: isolate; overflow: hidden;
+    /* coins coupés en diagonale, plus grands en haut à droite et en bas à gauche */
+    clip-path: polygon(.5rem 0, calc(100% - var(--edge)) 0, 100% var(--edge), 100% calc(100% - .5rem), calc(100% - .5rem) 100%, var(--edge) 100%, 0 calc(100% - var(--edge)), 0 .5rem);
+    background:
+        radial-gradient(120% 60% at 50% 105%, color-mix(in srgb, var(--pack) 42%, transparent), transparent 70%),
+        linear-gradient(168deg, color-mix(in srgb, var(--pack) 20%, #0a0c14), var(--pack-dark) 60%, #04050a);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pack) 85%, transparent), inset 0 0 0 4px #05060b, inset 0 0 0 5px color-mix(in srgb, var(--pack) 38%, transparent), inset 0 0 2.4rem rgb(var(--tone-rgb) / .28);
+    transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform .25s ease-out;
+}
+/* Volume : un seul éclairage doux (bord haut clair, bas sombre) et un filet lumineux le long du bord supérieur ; l'ombre portée est floue, jamais en escalier. */
+.pack::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: linear-gradient(180deg, rgb(255 255 255 / .16), transparent 14%, transparent 80%, rgb(0 0 0 / .35)), linear-gradient(90deg, rgb(0 0 0 / .3), transparent 9%, transparent 91%, rgb(0 0 0 / .3)); }
+.pack-stage, .pack-tilt { filter: drop-shadow(0 1rem 1.1rem rgb(0 0 0 / .6)); }
+.pack-tile:hover .pack-stage { filter: drop-shadow(0 .6rem .8rem rgb(0 0 0 / .55)) drop-shadow(0 0 1.2rem rgb(var(--tone-rgb) / .6)); }
+
+/* Fond : fine grille de circuit + lignes de balayage presque invisibles + reflet holographique qui passe en diagonale */
+.pack-foil { position: absolute; inset: 0; z-index: -1; opacity: .9;
+    background: linear-gradient(rgb(var(--tone-rgb) / .09) 1px, transparent 1px) 0 0 / 100% 1.1rem, linear-gradient(90deg, rgb(var(--tone-rgb) / .07) 1px, transparent 1px) 0 0 / 1.1rem 100%; }
+.pack-foil::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / .22) 48%, rgb(var(--tone-rgb) / .35) 52%, transparent 60%); background-size: 280% 100%; animation: pack-sheen 3.8s ease-in-out infinite; mix-blend-mode: screen; }
+.pack-glare { position: absolute; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: overlay; background: radial-gradient(circle at var(--mx, 50%) var(--my, 28%), rgb(255 255 255 / .45), transparent 50%); }
+
+/* Bandes de scellage : fines, avec des graduations (pas de grosses rayures) et un filet néon */
+.pack-crimp { position: absolute; left: 0; right: 0; height: 1rem; z-index: 2; background: repeating-linear-gradient(90deg, rgb(var(--tone-rgb) / .7) 0 1px, transparent 1px 5px), linear-gradient(180deg, #0b0d16, #05060b); }
+.pack-crimp-top { top: 0; border-bottom: 1px solid rgb(var(--tone-rgb) / .9); box-shadow: 0 1px 10px rgb(var(--tone-rgb) / .55); }
+.pack-crimp-bottom { bottom: 0; border-top: 1px solid rgb(var(--tone-rgb) / .9); box-shadow: 0 -1px 10px rgb(var(--tone-rgb) / .55); }
+
+/* Emblème : un contour fin qui brille, un noyau plein au centre */
+.pack-emblem { position: absolute; top: 17%; left: 50%; width: 46%; aspect-ratio: 1; translate: -50% 0; z-index: 1; background: var(--pack); clip-path: var(--shape); filter: drop-shadow(0 0 .7rem var(--pack)); animation: emblem-pulse 2.6s ease-in-out infinite; }
+.pack-emblem::before { content: ""; position: absolute; inset: 5%; background: #05060b; clip-path: var(--shape); }
+.pack-emblem::after { content: ""; position: absolute; inset: 31%; background: radial-gradient(circle, #fff, var(--pack) 70%); clip-path: var(--shape); }
+
+.pack-level { position: absolute; top: 1.35rem; left: .8rem; z-index: 2; padding: .1rem .45rem; color: var(--pack); background: rgb(5 6 11 / .85); border: 1px solid var(--pack); font: 700 .72rem/1.4 var(--font-display); letter-spacing: .14em; box-shadow: 0 0 .6rem rgb(var(--tone-rgb) / .5); }
+.pack-title { z-index: 2; color: #fff; font: 700 1.4rem/1.1 var(--font-display); letter-spacing: .16em; text-transform: uppercase; text-shadow: -1px 0 rgb(255 40 110 / .75), 1px 0 rgb(40 230 255 / .75), 0 0 1rem var(--pack); }
+.pack-sub { z-index: 2; color: color-mix(in srgb, var(--pack) 60%, #fff); font: 600 .72rem var(--font-display); letter-spacing: .12em; text-transform: uppercase; opacity: .9; }
+/* repères d'angle : deux petits L néon en bas à gauche et en haut à droite du cadre */
+.pack-sub::before, .pack-sub::after { content: ""; position: absolute; width: .9rem; height: .9rem; pointer-events: none; }
+.pack-sub::before { left: .7rem; bottom: 1.5rem; border-left: 2px solid var(--pack); border-bottom: 2px solid var(--pack); }
+.pack-sub::after { right: .7rem; top: 1.5rem; border-right: 2px solid var(--pack); border-top: 2px solid var(--pack); }
+@keyframes pack-sheen { 0% { background-position: 150% 0; } 60%, 100% { background-position: -50% 0; } }
+@keyframes emblem-pulse { 50% { filter: drop-shadow(0 0 1.3rem var(--pack)) brightness(1.15); } }
+
+/* Niveau I : trame de balayage horizontale, sobre */
+.pack[data-difficulty="easy"] .pack-foil { background: repeating-linear-gradient(0deg, rgb(var(--tone-rgb) / .1) 0 1px, transparent 1px 5px); }
+/* Niveau II : bouclier et circuits */
+.pack[data-difficulty="normal"] { --shape: var(--shape-shield); }
+/* Niveau III : étoile à pointes, fines hachures de danger orange */
+.pack[data-difficulty="hard"] { --shape: var(--shape-spike); background: radial-gradient(120% 60% at 50% 105%, rgb(255 140 50 / .5), transparent 70%), linear-gradient(168deg, color-mix(in srgb, var(--pack) 24%, #120a06), var(--pack-dark) 60%, #04050a); }
+.pack[data-difficulty="hard"] .pack-foil { background: repeating-linear-gradient(135deg, rgb(255 154 61 / .12) 0 1px, transparent 1px 7px); }
+.pack[data-difficulty="hard"] .pack-title { text-shadow: -1px 0 rgb(255 40 110 / .75), 1px 0 rgb(255 180 60 / .8), 0 0 1rem #ff9a3d; }
+/* Shiny : prisme nacré */
+.pack[data-kind="shiny"] { --shape: var(--shape-spark); --pack: #ffd36b; background: linear-gradient(168deg, #1b0f2d, #07070d 55%, #06222c); box-shadow: inset 0 0 0 1px #ffd36b, inset 0 0 0 4px #05060b, inset 0 0 0 5px rgb(255 211 107 / .4); }
+.pack[data-kind="shiny"] .pack-foil { opacity: .75; background: conic-gradient(from 0deg at 50% 38%, var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac), var(--pearl-rose)); animation: pack-prism 6s linear infinite; mix-blend-mode: screen; }
+.pack[data-kind="shiny"] .pack-emblem { background: conic-gradient(var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac), var(--pearl-rose)); }
+@keyframes pack-prism { to { filter: hue-rotate(360deg); } }
+
+/* ---- Cérémonie d'ouverture */
+:where(.opening) { --tone-rgb: 180 77 255; } .opening { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 1.5rem; overflow: hidden auto; background: #05050a; }
+.opening-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgb(var(--tone-rgb) / .28), transparent 65%); transition: background .6s; }
+.opening[data-dark="true"] .opening-bg { background: radial-gradient(ellipse at center, rgb(var(--tone-rgb) / .5), rgb(0 0 0 / .85) 78%); }
+.rays { position: fixed; left: 50%; top: 50%; width: 220vmax; height: 220vmax; translate: -50% -50%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .8s;
+    background: repeating-conic-gradient(from 0deg, transparent 0 7deg, rgb(var(--tone-rgb) / .38) 7deg 10deg, transparent 10deg 15deg);
+    mask: radial-gradient(circle, #000 0, transparent 38%); -webkit-mask: radial-gradient(circle, #000 0, transparent 38%); animation: rays-spin 24s linear infinite; }
+.rays[data-on="true"] { opacity: 1; }
+/* Carte shiny : un seul jeu de rayons, de la couleur de la rareté, chacun nuancé d'une teinte nacrée différente (rose, champagne, menthe, ciel, lilas) : le multicolore du shiny, sans perdre la rareté */
+.rays[data-shiny="true"][data-on="true"] { opacity: .42; } /* même intensité que les rayons ordinaires (leurs couleurs sont ici opaques) */
+.rays[data-shiny="true"] {
+    --r: rgb(var(--tone-rgb));
+    --r1: color-mix(in srgb, var(--r) 68%, var(--pearl-rose));  --r2: color-mix(in srgb, var(--r) 68%, var(--pearl-gold));
+    --r3: color-mix(in srgb, var(--r) 68%, var(--pearl-mint));  --r4: color-mix(in srgb, var(--r) 68%, var(--pearl-sky));
+    --r5: color-mix(in srgb, var(--r) 68%, var(--pearl-lilac));
+    background: repeating-conic-gradient(from 0deg,
+        transparent 0 7deg, var(--r1) 7deg 10deg, transparent 10deg 22deg, var(--r2) 22deg 25deg, transparent 25deg 37deg, var(--r3) 37deg 40deg,
+        transparent 40deg 52deg, var(--r4) 52deg 55deg, transparent 55deg 67deg, var(--r5) 67deg 70deg, transparent 70deg 75deg); }
+@keyframes rays-spin { to { rotate: 360deg; } }
+
+.opening-inner { position: relative; z-index: 2; display: grid; justify-items: center; gap: 1.5rem; width: 100%; }
+.opening-pack-wrap { position: relative; width: min(19rem, 66vw); aspect-ratio: 5 / 7; }
+.opening-pack-wrap[data-phase="present"] { cursor: pointer; }
+.opening-pack-wrap[data-phase="present"]::before { content: ""; position: absolute; inset: -22%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgb(var(--tone-rgb) / .45), transparent 66%); animation: present-glow 2.8s ease-in-out infinite; }
+.opening-pack-wrap[data-phase="present"]:focus-visible { outline: 2px solid rgb(var(--tone-rgb)); outline-offset: .6rem; }
+@keyframes present-glow { 50% { scale: 1.12; opacity: .7; } }
+.pack-tilt { position: absolute; inset: 0; transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s ease-out; }
+.opening-pack-wrap[data-phase="present"] .pack-tilt { animation: pack-bob 4.4s ease-in-out infinite; }
+.opening-pack-wrap[data-phase="present"]:hover .pack-tilt { filter: drop-shadow(0 .6rem .8rem rgb(0 0 0 / .5)) drop-shadow(0 0 1.6rem rgb(var(--tone-rgb) / .8)); }
+.opening-intro, .opening-cta { display: grid; justify-items: center; gap: 1rem; }
+.opening-prompt { color: #fff; font: 700 1.15rem var(--font-display); letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 0 1rem rgb(var(--tone-rgb)); animation: prompt-pulse 1.6s ease-in-out infinite; }
+@keyframes prompt-pulse { 50% { opacity: .45; } }
+.pack-half { position: absolute; inset: 0; } /* le paquet est dessiné deux fois, coupé en deux : au déchirement les moitiés s'écartent */
+.pack-half-top { clip-path: inset(0 0 50% 0); }
+.pack-half-bottom { clip-path: inset(50% 0 0 0); }
+.pack-half .pack { position: absolute; inset: 0; transform: none; transition: none; }
+.pack-half .pack-glare { opacity: 1; }
+.energy { position: absolute; left: 50%; top: 50%; width: 130%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; pointer-events: none; z-index: -1; border: 2px solid rgb(var(--tone-rgb) / .8); box-shadow: 0 0 2rem rgb(var(--tone-rgb) / .7), inset 0 0 2rem rgb(var(--tone-rgb) / .5); animation: energy-in 1s ease-in infinite; }
+.energy:nth-child(2) { animation-delay: .33s; } .energy:nth-child(3) { animation-delay: .66s; }
+@keyframes energy-in { from { scale: 2.2; opacity: 0; } 30% { opacity: 1; } to { scale: .4; opacity: 0; } }
+.beam { will-change: transform, opacity; position: absolute; left: 50%; top: 50%; width: 140%; height: .35rem; translate: -50% -50%; opacity: 0; pointer-events: none; border-radius: 999px; background: linear-gradient(90deg, transparent, rgb(var(--tone-rgb) / .9) 15%, #fff 50%, rgb(var(--tone-rgb) / .9) 85%, transparent); box-shadow: 0 0 1.5rem .6rem rgb(var(--tone-rgb) / .7), 0 0 5rem 2rem rgb(var(--tone-rgb) / .35); filter: blur(.5px); }
+
+.opening-result { display: grid; justify-items: center; gap: 1.4rem; width: 100%; }
+.opening-title { min-height: 1em; color: #fff; font: 700 clamp(2rem, 7vw, 3.8rem)/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; text-shadow: -2px 0 rgb(255 40 90 / .6), 2px 0 rgb(40 230 255 / .6), 0 0 2rem rgb(var(--tone-rgb) / .9); }
+.opening[data-tone="legendary"] .opening-title { background: linear-gradient(180deg, #fff6c8, #ffc94d 55%, #b87a12); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 1.2rem rgb(255 201 77 / .85)); }
+.opening-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; perspective: 1100px; }
+.reveal-slot { position: relative; width: min(17rem, 74vw); }
+.reveal-slot .card-slot { width: 100%; }
+.reveal-slot { aspect-ratio: 312 / 495; } /* la place est réservée : retourner la carte ne déplace rien */
+.reveal-slot .reveal-back { position: absolute; inset: 0; }
+/* Dos de carte cyberpunk : verre noir, double filet néon, circuit gravé, emblème en contour avec anneau pointillé qui tourne. */
+.reveal-back { --tone-rgb: 130 150 205; --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%; cursor: pointer;
+    transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .18s ease-out, filter .3s, scale .2s;
+    filter: drop-shadow(0 .7rem 1rem rgb(0 0 0 / .6)) drop-shadow(0 0 1rem rgb(var(--tone-rgb) / .55)); }
+.back-face { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    background: radial-gradient(90% 55% at 50% 100%, rgb(var(--tone-rgb) / .3), transparent 70%), linear-gradient(165deg, color-mix(in srgb, rgb(var(--tone-rgb)) 16%, #0a0c14), #05060b 70%);
+    box-shadow: inset 0 0 0 1px rgb(var(--tone-rgb) / .95), inset 0 0 0 5px #05060b, inset 0 0 0 6px rgb(var(--tone-rgb) / .4), inset 0 0 2.6rem rgb(var(--tone-rgb) / .3); }
+/* circuit gravé : fine grille + quelques pistes qui partent de l'anneau */
+.back-weave { position: absolute; inset: 9px; opacity: .8;
+    background:
+        linear-gradient(rgb(var(--tone-rgb) / .1) 1px, transparent 1px) 0 0 / 100% 14px,
+        linear-gradient(90deg, rgb(var(--tone-rgb) / .08) 1px, transparent 1px) 0 0 / 14px 100%,
+        linear-gradient(rgb(var(--tone-rgb) / .55), rgb(var(--tone-rgb) / .55)) 50% 0 / 1px 17% no-repeat,
+        linear-gradient(rgb(var(--tone-rgb) / .55), rgb(var(--tone-rgb) / .55)) 50% 100% / 1px 17% no-repeat,
+        linear-gradient(rgb(var(--tone-rgb) / .55), rgb(var(--tone-rgb) / .55)) 0 50% / 14% 1px no-repeat,
+        linear-gradient(rgb(var(--tone-rgb) / .55), rgb(var(--tone-rgb) / .55)) 100% 50% / 14% 1px no-repeat; }
+.back-ring { position: absolute; width: 60%; aspect-ratio: 1; border-radius: 50%; border: 1px solid rgb(var(--tone-rgb) / .8); box-shadow: 0 0 1.2rem rgb(var(--tone-rgb) / .35), inset 0 0 1.2rem rgb(var(--tone-rgb) / .3); }
+.back-ring::before { content: ""; position: absolute; inset: -.55rem; border-radius: 50%; border: 2px dashed rgb(var(--tone-rgb) / .7); animation: back-orbit 14s linear infinite; }
+@keyframes back-orbit { to { rotate: 1turn; } }
+.back-emblem { position: relative; width: 34%; aspect-ratio: 1; clip-path: var(--shape-hex); background: rgb(var(--tone-rgb)); filter: drop-shadow(0 0 1rem rgb(var(--tone-rgb))); animation: emblem-pulse 1.8s ease-in-out infinite; }
+.back-emblem::before { content: ""; position: absolute; inset: 6%; clip-path: var(--shape-hex); background: #05060b; }
+.back-emblem::after { content: ""; position: absolute; inset: 32%; clip-path: var(--shape-hex); background: radial-gradient(circle, #fff, rgb(var(--tone-rgb)) 70%); }
+.back-face::after { content: "CYBERDECK"; position: absolute; left: 0; right: 0; bottom: 8%; text-align: center; color: rgb(var(--tone-rgb) / .85); font: 700 .62rem var(--font-display); letter-spacing: .45em; text-indent: .45em; text-shadow: 0 0 .6rem rgb(var(--tone-rgb) / .8); }
+.back-glare { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; background: radial-gradient(circle at var(--mx) var(--my), rgb(255 255 255 / .4), transparent 55%); }
+.reveal-slot[data-aura="rare"] .reveal-back { --tone-rgb: 77 163 255; }
+.reveal-slot[data-aura="epic"] .reveal-back { --tone-rgb: 194 100 255; }
+.reveal-slot[data-aura="legendary"] .reveal-back { --tone-rgb: 255 201 77; animation: back-rattle .12s linear infinite; }
+.reveal-slot[data-aura="shiny"] .reveal-back { --tone-rgb: 214 196 255; }
+.reveal-slot[data-flipped="false"]:not([data-aura="idle"]) .back-emblem, .reveal-back[data-teasing="true"] .back-emblem { animation-duration: .35s; }
+.reveal-back:not([data-teasing="true"]):hover { scale: 1.04; }
+.reveal-back:focus-visible { outline: 2px solid rgb(var(--tone-rgb)); outline-offset: .4rem; }
+.reveal-back[data-teasing="true"] { cursor: default; }
+@keyframes back-rattle { 0% { translate: -2px 1px; } 50% { translate: 2px -1px; } 100% { translate: -1px 2px; } }
+.reveal-slot[data-rarity="legendary"][data-flipped="true"] { animation: legend-glow 2.4s ease-in-out infinite alternate; }
+/* Skin shiny : la lueur reste de la couleur de la rareté, avec un léger voile nacré mêlé par-dessus */
+.reveal-slot[data-rarity="common"]    { --r-rgb: 207 214 230; }
+.reveal-slot[data-rarity="rare"]      { --r-rgb: 77 163 255; }
+.reveal-slot[data-rarity="epic"]      { --r-rgb: 194 100 255; }
+.reveal-slot[data-rarity="legendary"] { --r-rgb: 255 201 77; }
+.reveal-slot[data-shiny="true"][data-flipped="true"] { animation: shiny-glow 2.4s ease-in-out infinite alternate; }
+@keyframes shiny-glow {
+    from { filter: drop-shadow(0 0 .8rem rgb(var(--r-rgb) / .5)) drop-shadow(0 0 .5rem rgb(var(--pearl-sky-rgb) / .22)); }
+    to   { filter: drop-shadow(0 0 2rem rgb(var(--r-rgb) / .8)) drop-shadow(0 0 1.2rem rgb(var(--pearl-rose-rgb) / .35)); }
+}
+@keyframes legend-glow { from { filter: drop-shadow(0 0 .8rem rgb(255 201 77 / .5)); } to { filter: drop-shadow(0 0 2.4rem rgb(255 201 77 / .95)); } }
+.reveal-slot[data-flipped="true"][data-inspect] { cursor: zoom-in; }
+.opening-title.is-idle { visibility: hidden; }
+.opening-footer { display: grid; justify-items: center; align-content: start; gap: .9rem; height: 11rem; } /* hauteur fixe : ce qui apparaît dessous ne pousse jamais les cartes */
+.opening-result[data-arriving="true"] .opening-footer { visibility: hidden; } /* rien d'autre que les cartes pendant leur arrivée */
+.opening-hint { color: var(--muted); font-size: .85rem; letter-spacing: .08em; }
+.opening-note { color: var(--accent); font: 600 1rem var(--font-display); text-align: center; max-width: 32rem; }
+
+/* ---- Particules (créées par fx/booster-fx.js) */
+.fx-dot, .fx-spark, .fx-ring, .fx-dust { position: fixed; z-index: 78; pointer-events: none; }
+.fx-dot { width: .35rem; height: .35rem; margin: -.18rem 0 0 -.18rem; border-radius: 50%; background: rgb(var(--c)); box-shadow: 0 0 .6rem rgb(var(--c)); }
+.fx-spark { width: 3px; transform-origin: top center; background: rgb(var(--c)); box-shadow: 0 0 .5rem rgb(var(--c)); }
+.fx-ring { translate: -50% -50%; border-radius: 50%; border: 3px solid rgb(var(--c)); box-shadow: 0 0 1.4rem rgb(var(--c)), inset 0 0 1.2rem rgb(var(--c) / .6); }
+.fx-dust { width: .5rem; height: .5rem; margin: -.25rem 0 0 -.25rem; background: rgb(var(--c)); clip-path: var(--shape-spark); box-shadow: 0 0 .6rem rgb(var(--c)); }
+.opening-flash { position: fixed; inset: 0; z-index: 77; pointer-events: none; opacity: 0; will-change: opacity; background: radial-gradient(circle, rgb(255 255 255 / .85) 0, rgb(var(--tone-rgb) / .6) 30%, transparent 70%); }
+
+@media (prefers-reduced-motion: reduce) {
+    .pack-tile .pack-stage, .pack-foil::after, .pack-emblem, .rays, .energy, .reveal-slot[data-aura="legendary"] .reveal-back, .reveal-slot[data-flipped="true"], .back-emblem, .back-ring::before, .opening-pack-wrap::before, .pack-tilt, .opening-prompt, .glint { animation: none; }
+}
+
+/* Pressentiment : de petits éclats blancs qui scintillent autour du paquet (épique ou mieux). Même blanc pour tous : aucun indice sur la rareté. */
+.glint { position: absolute; left: var(--x); top: var(--y); z-index: 3; width: 1.1rem; aspect-ratio: 1; translate: -50% -50%; pointer-events: none; opacity: 0; scale: .2;
+    background: #fff; clip-path: var(--shape-spark); filter: drop-shadow(0 0 .5rem #fff) drop-shadow(0 0 1rem rgb(255 255 255 / .7)); }
+.opening-pack-wrap[data-glint="true"]:not([data-phase="present"]) .glint { animation: glint-twinkle .9s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes glint-twinkle { 0%, 100% { opacity: 0; scale: .2; rotate: 0deg; } 50% { opacity: 1; scale: 1; rotate: 45deg; } }
+
+/* Pendant la charge et la déchirure : on allège le rendu (pas d'ombres portées ni d'animations de fond) pour rester fluide */
+.opening-pack-wrap[data-phase="charge"], .opening-pack-wrap[data-phase="tear"], .pack-half { will-change: transform, opacity; }
+.opening-pack-wrap[data-phase="charge"] .pack-tilt, .opening-pack-wrap[data-phase="tear"] .pack-tilt { filter: none; }
+.opening-pack-wrap[data-phase="charge"] .pack-foil::after, .opening-pack-wrap[data-phase="tear"] .pack-foil::after,
+.opening-pack-wrap[data-phase="charge"] .pack-emblem, .opening-pack-wrap[data-phase="tear"] .pack-emblem, .opening-pack-wrap[data-phase="tear"] .energy { animation: none; }
+.opening-pack-wrap[data-phase="tear"] .energy { opacity: 0; }
+
+/* ---- Pièces shiny : les points gagnés tombent en pièces irisées (jamais un écran vide) */
+.opening-coins { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; max-width: 30rem; perspective: 700px; }
+.coin { position: relative; display: grid; place-items: center; width: 3.8rem; height: 3.8rem; border-radius: 50%; filter: drop-shadow(0 0 .8rem rgb(255 211 107 / .55)); }
+.coin::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(var(--pearl-rose), var(--pearl-gold), var(--pearl-mint), var(--pearl-sky), var(--pearl-lilac), var(--pearl-rose)); animation: coin-turn 4s linear infinite; }
+.coin i { position: relative; display: grid; place-items: center; width: 74%; height: 74%; border-radius: 50%; font: 700 1.4rem/1 var(--font-display); font-style: normal; color: #7a4d00;
+    background: radial-gradient(circle at 35% 28%, #fff7c9, #ffd36b 48%, #b9801a); box-shadow: inset 0 -.25rem .45rem rgb(0 0 0 / .28), inset 0 .15rem .3rem rgb(255 255 255 / .6); }
+@keyframes coin-turn { to { rotate: 1turn; } }
+@media (prefers-reduced-motion: reduce) { .coin::before { animation: none; } }
+
+/* Petites pièces : bourse de la page Boosters et écran de fin de partie */
+.coin-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.coin-sm { width: 2.4rem; height: 2.4rem; }
+.coin-sm i { font-size: .95rem; }
+.coin.is-empty { filter: none; opacity: .7; }
+.coin.is-empty::before { animation: none; background: rgb(255 255 255 / .16); }
+.coin.is-empty i { color: var(--muted); background: transparent; box-shadow: inset 0 0 0 2px rgb(255 255 255 / .22); }
+.coin-extra { font: 700 1.1rem var(--font-display); color: var(--accent); }
+.coin-pop { animation: coin-pop .6s cubic-bezier(.2, .9, .3, 1.3) both; animation-delay: calc(var(--i, 1) * .1s + .3s); }
+@keyframes coin-pop { from { opacity: 0; translate: 0 -1.5rem; scale: .3; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .coin-pop { animation: none; } }
+
+/* Légende sous les pièces gagnées : ce que c'est et à quoi ça sert */
+.coins-text { display: grid; gap: .2rem; max-width: 30rem; text-align: center; }
+.coin-row + .coins-text { text-align: left; } /* écran de fin : le texte s'aligne sur la pièce, à gauche */
+.coins-text strong { font: 700 1.2rem var(--font-display); color: #ffd36b; }
+.coins-text span { color: var(--muted); font-size: .9rem; }
+
+/* Pièces verrouillées (pas encore toutes les cartes) : grises partout, y compris le « +N » et les légendes */
+.shiny-wallet[data-locked="true"] .coin-extra, .coins-text[data-locked="true"] strong { color: var(--muted); }
+.coin-row[data-locked="true"] .coin, .opening-coins[data-locked="true"] .coin { filter: grayscale(1) brightness(.55); opacity: .65; }
+.coin-row[data-locked="true"] .coin::before, .opening-coins[data-locked="true"] .coin::before { animation: none; }
